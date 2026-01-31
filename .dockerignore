@@ -1,0 +1,69 @@
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+.next
+out
+dist
+build
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Environment files
+.env*
+!.env.example
+!.env.production.example
+
+# IDE and editors
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+coverage
+.nyc_output
+*.test.ts
+*.spec.ts
+__tests__
+__mocks__
+
+# Documentation and planning
+docs
+plans
+*.md
+!README.md
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# Logs
+logs
+*.log
+
+# Project specific
+.claude
+.opencode
+backups
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Misc
+.cache
+tmp
+temp
+*.tmp
