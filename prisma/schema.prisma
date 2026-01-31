@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum DealStage {
+  prospecting
+  qualification
+  proposal
+  negotiation
+  closed_won
+  closed_lost
+}
+
+enum ActivityType {
+  call
+  email
+  meeting
+  note
+}
+
+enum AuthorityLevel {
+  primary
+  secondary
+  influencer
+}
+
+enum CompanySize {
+  tiny_1_10
+  small_11_50
+  medium_51_200
+  large_201_500
+  enterprise_500_plus
+}
+
+// ============================================
+// Better Auth tables
+// ============================================
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions   Session[]
+  accounts   Account[]
+  companies  Company[]
+  contacts   Contact[]
+  deals      Deal[]
+  activities Activity[]
+  tags       Tag[]
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ============================================
+// CRM Models
+// ============================================
+
+model Company {
+  id        String       @id @default(cuid())
+  name      String
+  industry  String?
+  size      CompanySize?
+  website   String?
+  phone     String?
+  email     String?
+  address   String?
+  notes     String?
+  metadata  Json?
+  userId    String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contacts   Contact[]
+  deals      Deal[]
+  activities Activity[]
+  tags       CompanyTag[]
+
+  @@index([userId])
+  @@index([name])
+  @@index([industry])
+}
+
+model Contact {
+  id              String          @id @default(cuid())
+  name            String
+  email           String?
+  phone           String?
+  jobTitle        String?
+  isDecisionMaker Boolean         @default(false)
+  authorityLevel  AuthorityLevel?
+  notes           String?
+  metadata        Json?
+  companyId       String
+  userId          String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company    Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  deals      Deal[]
+  activities Activity[]
+  tags       ContactTag[]
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([name])
+  @@index([email])
+  @@index([isDecisionMaker])
+}
+
+model Deal {
+  id                String    @id @default(cuid())
+  name              String
+  value             Decimal   @default(0) @db.Decimal(12, 2)
+  stage             DealStage @default(prospecting)
+  probability       Int       @default(0)
+  expectedCloseDate DateTime?
+  notes             String?
+  metadata          Json?
+  companyId         String
+  contactId         String?
+  userId            String
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company    Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contact    Contact?   @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  activities Activity[]
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([contactId])
+  @@index([stage])
+  @@index([expectedCloseDate])
+}
+
+model Activity {
+  id              String       @id @default(cuid())
+  type            ActivityType
+  subject         String
+  description     String?
+  date            DateTime     @default(now())
+  durationMinutes Int?
+  outcome         String?
+  nextSteps       String?
+  companyId       String?
+  contactId       String?
+  dealId          String?
+  userId          String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  deal    Deal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([contactId])
+  @@index([dealId])
+  @@index([type])
+  @@index([date])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#6B7280")
+  userId    String
+  createdAt DateTime @default(now())
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companies   CompanyTag[]
+  contacts    ContactTag[]
+
+  @@unique([name, userId])
+}
+
+model CompanyTag {
+  companyId String
+  tagId     String
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([companyId, tagId])
+}
+
+model ContactTag {
+  contactId String
+  tagId     String
+
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([contactId, tagId])
+}
