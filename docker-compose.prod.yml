@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: minicrm-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-minicrm}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-minicrm}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-minicrm} -d ${DB_NAME:-minicrm}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - minicrm-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: minicrm-app-prod
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-minicrm}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-minicrm}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - minicrm-network
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  minicrm-network:
+    driver: bridge
