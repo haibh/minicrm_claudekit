@@ -54,3 +54,18 @@ LOGIN_INFO.md
 next-env.d.ts
 
 /src/generated/prisma
+
+# AI/development tooling (not needed for app)
+/.claude/
+/.opencode/
+/plans/
+/docs/
+/e2e/
+/src/__tests__/
+AGENTS.md
+CLAUDE.md
+IMPLEMENTATION_PLAN.md
+release-manifest.json
+.repomixignore
+vitest.config.ts
+playwright.config.ts
