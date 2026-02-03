@@ -15,6 +15,7 @@ import { DecisionMakerBadge } from "@/components/contacts/decision-maker-badge";
 import { deleteContact } from "@/actions/contact-actions";
 import { AuthorityLevel } from "@/generated/prisma/client";
 import { Users } from "lucide-react";
+import { formatAuthorityLevel } from "@/lib/format-display-utils";
 
 interface Contact {
   id: string;
@@ -57,16 +58,6 @@ export function ContactListTable({ contacts }: ContactListTableProps) {
       </div>
     );
   }
-
-  const formatAuthorityLevel = (level: AuthorityLevel | null) => {
-    if (!level) return "-";
-    const levelMap: Record<AuthorityLevel, string> = {
-      primary: "Primary",
-      secondary: "Secondary",
-      influencer: "Influencer",
-    };
-    return levelMap[level];
-  };
 
   return (
     <div className="rounded-md border">

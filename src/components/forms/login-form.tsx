@@ -43,6 +43,7 @@ export function LoginForm() {
       // Redirect to dashboard on success
       router.push("/dashboard");
     } catch (err) {
+      console.error("Login error:", err);
       setError("An unexpected error occurred. Please try again.");
       setIsLoading(false);
     }

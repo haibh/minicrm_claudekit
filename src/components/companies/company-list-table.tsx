@@ -14,6 +14,7 @@ import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
 import { deleteCompany } from "@/actions/company-actions";
 import { formatDate } from "@/lib/utils";
 import { Building2 } from "lucide-react";
+import { formatCompanySizeShort } from "@/lib/format-display-utils";
 
 interface Company {
   id: string;
@@ -51,18 +52,6 @@ export function CompanyListTable({ companies }: CompanyListTableProps) {
     );
   }
 
-  const formatCompanySize = (size: string | null) => {
-    if (!size) return "-";
-    const sizeMap: Record<string, string> = {
-      tiny_1_10: "1-10",
-      small_11_50: "11-50",
-      medium_51_200: "51-200",
-      large_201_500: "201-500",
-      enterprise_500_plus: "500+",
-    };
-    return sizeMap[size] || size;
-  };
-
   return (
     <div className="rounded-md border">
       <Table>
@@ -87,7 +76,7 @@ export function CompanyListTable({ companies }: CompanyListTableProps) {
             >
               <TableCell className="font-medium">{company.name}</TableCell>
               <TableCell>{company.industry || "-"}</TableCell>
-              <TableCell>{formatCompanySize(company.size)}</TableCell>
+              <TableCell>{formatCompanySizeShort(company.size)}</TableCell>
               <TableCell>{company._count.contacts}</TableCell>
               <TableCell>{company._count.deals}</TableCell>
               <TableCell>

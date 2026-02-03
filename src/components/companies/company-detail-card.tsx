@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TagBadge } from "@/components/shared/tag-badge";
 import { Building2, Globe, Mail, Phone, MapPin } from "lucide-react";
 import { CompanySize } from "@/generated/prisma/client";
+import { formatCompanySize } from "@/lib/format-display-utils";
 
 interface CompanyDetailCardProps {
   company: {
@@ -25,18 +26,6 @@ interface CompanyDetailCardProps {
 }
 
 export function CompanyDetailCard({ company }: CompanyDetailCardProps) {
-  const formatCompanySize = (size: CompanySize | null) => {
-    if (!size) return null;
-    const sizeMap: Record<string, string> = {
-      tiny_1_10: "1-10 employees",
-      small_11_50: "11-50 employees",
-      medium_51_200: "51-200 employees",
-      large_201_500: "201-500 employees",
-      enterprise_500_plus: "500+ employees",
-    };
-    return sizeMap[size] || size;
-  };
-
   return (
     <Card>
       <CardHeader>

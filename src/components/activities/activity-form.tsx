@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CompanySelector } from "@/components/shared/company-selector";
-import { ContactSelector } from "@/components/shared/contact-selector";
-import { DealSelector } from "@/components/shared/deal-selector";
-import { ActivityType } from "@/generated/prisma/client";
+import { ActivityRelatedEntityFields } from "@/components/activities/activity-related-entity-fields";
+import { ActivityType, DealStage } from "@/generated/prisma/client";
 
 interface ActivityFormProps {
   action: (formData: FormData) => Promise<void>;
@@ -41,7 +39,7 @@ interface ActivityFormProps {
   deals: Array<{
     id: string;
     name: string;
-    stage: any;
+    stage: DealStage;
     company?: { name: string } | null;
   }>;
   submitLabel?: string;
@@ -56,12 +54,31 @@ export function ActivityForm({
   submitLabel = "Create Activity",
 }: ActivityFormProps) {
   const searchParams = useSearchParams();
+
+  // Helper to compute initial company ID (including inference from contact)
+  const computeInitialCompanyId = () => {
+    if (defaultValues?.companyId) return defaultValues.companyId;
+    const urlCompanyId = searchParams.get("companyId");
+    if (urlCompanyId) return urlCompanyId;
+
+    // Try to infer company from contact URL param
+    const urlContactId = searchParams.get("contactId");
+    if (urlContactId && !defaultValues?.contactId) {
+      const contact = contacts.find((c) => c.id === urlContactId);
+      if (contact?.company?.name) {
+        const companyFromContact = companies.find(
+          (co) => co.name === contact.company?.name
+        );
+        if (companyFromContact) return companyFromContact.id;
+      }
+    }
+    return "";
+  };
+
   const [type, setType] = useState<ActivityType>(
     defaultValues?.type || ("call" as ActivityType)
   );
-  const [companyId, setCompanyId] = useState<string>(
-    defaultValues?.companyId || searchParams.get("companyId") || ""
-  );
+  const [companyId, setCompanyId] = useState<string>(computeInitialCompanyId);
   const [contactId, setContactId] = useState<string>(
     defaultValues?.contactId || searchParams.get("contactId") || ""
   );
@@ -69,30 +86,7 @@ export function ActivityForm({
     defaultValues?.dealId || searchParams.get("dealId") || ""
   );
 
-  useEffect(() => {
-    const urlContactId = searchParams.get("contactId");
-    const urlCompanyId = searchParams.get("companyId");
-    const urlDealId = searchParams.get("dealId");
 
-    if (urlContactId && !defaultValues?.contactId) {
-      setContactId(urlContactId);
-      const contact = contacts.find((c) => c.id === urlContactId);
-      if (contact && !urlCompanyId && !defaultValues?.companyId) {
-        const companyFromContact = companies.find(
-          (co) => co.name === contact.company?.name
-        );
-        if (companyFromContact) {
-          setCompanyId(companyFromContact.id);
-        }
-      }
-    }
-    if (urlCompanyId && !defaultValues?.companyId) {
-      setCompanyId(urlCompanyId);
-    }
-    if (urlDealId && !defaultValues?.dealId) {
-      setDealId(urlDealId);
-    }
-  }, [searchParams, companies, contacts, defaultValues]);
 
   const formatDateForInput = (date?: Date | null) => {
     if (!date) return new Date().toISOString().slice(0, 16);
@@ -184,35 +178,18 @@ export function ActivityForm({
         />
       </div>
 
-      <div className="space-y-4 border-t pt-6">
-        <h3 className="font-medium">Related Entities</h3>
-
-        <div className="space-y-2">
-          <Label htmlFor="companyId">Company</Label>
-          <input type="hidden" name="companyId" value={companyId} />
-          <CompanySelector
-            companies={companies}
-            value={companyId}
-            onChange={setCompanyId}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="contactId">Contact</Label>
-          <input type="hidden" name="contactId" value={contactId} />
-          <ContactSelector
-            contacts={contacts}
-            value={contactId}
-            onChange={setContactId}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="dealId">Deal</Label>
-          <input type="hidden" name="dealId" value={dealId} />
-          <DealSelector deals={deals} value={dealId} onChange={setDealId} />
-        </div>
-      </div>
+      {/* Related entity selectors — company, contact, deal */}
+      <ActivityRelatedEntityFields
+        companies={companies}
+        contacts={contacts}
+        deals={deals}
+        companyId={companyId}
+        contactId={contactId}
+        dealId={dealId}
+        onCompanyChange={setCompanyId}
+        onContactChange={setContactId}
+        onDealChange={setDealId}
+      />
 
       <div className="flex gap-2 justify-end border-t pt-6">
         <Button type="submit">{submitLabel}</Button>

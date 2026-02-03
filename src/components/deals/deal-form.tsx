@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CompanySelector } from "@/components/shared/company-selector";
-import { ContactSelector } from "@/components/shared/contact-selector";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -14,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DealEntitySelectors } from "@/components/deals/deal-entity-selectors";
 import { DealStage } from "@/generated/prisma/client";
 import { createDeal, updateDeal } from "@/actions/deal-actions";
 
@@ -49,7 +49,8 @@ interface DealFormProps {
   defaultContactId?: string;
 }
 
-const stageOptions: { value: DealStage; label: string }[] = [
+/** Pipeline stage options with human-readable labels */
+const STAGE_OPTIONS: { value: DealStage; label: string }[] = [
   { value: "prospecting", label: "Prospecting" },
   { value: "qualification", label: "Qualification" },
   { value: "proposal", label: "Proposal" },
@@ -98,12 +99,9 @@ export function DealForm({
     }
   }
 
-  const filteredContacts = companyId
-    ? contacts.filter((c) => c.company?.name === companies.find((co) => co.id === companyId)?.name)
-    : contacts;
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Deal name */}
       <div>
         <Label htmlFor="name">
           Deal Name <span className="text-red-500">*</span>
@@ -118,6 +116,7 @@ export function DealForm({
         />
       </div>
 
+      {/* Value and probability */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="value">
@@ -151,6 +150,7 @@ export function DealForm({
         </div>
       </div>
 
+      {/* Pipeline stage selector */}
       <div>
         <Label htmlFor="stage">
           Stage <span className="text-red-500">*</span>
@@ -160,7 +160,7 @@ export function DealForm({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {stageOptions.map((option) => (
+            {STAGE_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
@@ -169,6 +169,7 @@ export function DealForm({
         </Select>
       </div>
 
+      {/* Expected close date */}
       <div>
         <Label htmlFor="expectedCloseDate">Expected Close Date</Label>
         <Input
@@ -184,30 +185,17 @@ export function DealForm({
         />
       </div>
 
-      <div>
-        <Label htmlFor="companyId">
-          Company <span className="text-red-500">*</span>
-        </Label>
-        <div className="mt-1">
-          <CompanySelector
-            companies={companies}
-            value={companyId}
-            onChange={setCompanyId}
-          />
-        </div>
-      </div>
+      {/* Company and contact cascading selectors */}
+      <DealEntitySelectors
+        companies={companies}
+        contacts={contacts}
+        companyId={companyId}
+        contactId={contactId}
+        onCompanyChange={setCompanyId}
+        onContactChange={setContactId}
+      />
 
-      <div>
-        <Label htmlFor="contactId">Contact</Label>
-        <div className="mt-1">
-          <ContactSelector
-            contacts={filteredContacts}
-            value={contactId}
-            onChange={setContactId}
-          />
-        </div>
-      </div>
-
+      {/* Notes */}
       <div>
         <Label htmlFor="notes">Notes</Label>
         <Textarea
@@ -220,21 +208,14 @@ export function DealForm({
         />
       </div>
 
+      {/* Form actions */}
       <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={isSubmitting || !companyId}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <Button type="submit" disabled={isSubmitting || !companyId}>
           {isSubmitting ? "Saving..." : deal ? "Update Deal" : "Create Deal"}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-        >
+        </Button>
+        <Button type="button" variant="outline" onClick={() => router.back()}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

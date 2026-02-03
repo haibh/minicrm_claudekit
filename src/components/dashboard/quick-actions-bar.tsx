@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Building2, UserPlus, Handshake, Plus } from "lucide-react";

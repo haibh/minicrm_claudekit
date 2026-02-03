@@ -58,6 +58,7 @@ export function RegisterForm() {
       // Redirect to dashboard on success
       router.push("/dashboard");
     } catch (err) {
+      console.error("Registration error:", err);
       setError("An unexpected error occurred. Please try again.");
       setIsLoading(false);
     }

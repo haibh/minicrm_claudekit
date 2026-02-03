@@ -6,16 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CompanySelector } from "@/components/shared/company-selector";
+import { ContactDecisionMakerFields } from "@/components/contacts/contact-decision-maker-fields";
 import { AuthorityLevel } from "@/generated/prisma/client";
 
 interface Contact {
@@ -135,38 +128,13 @@ export function ContactForm({ contact, companies, action, defaultCompanyId }: Co
               />
             </div>
 
-            <div className="col-span-2 flex items-center space-x-2">
-              <Checkbox
-                id="isDecisionMaker"
-                name="isDecisionMaker"
-                checked={isDecisionMaker}
-                onCheckedChange={(checked) => setIsDecisionMaker(checked === true)}
-                value="true"
-              />
-              <Label htmlFor="isDecisionMaker" className="cursor-pointer">
-                Decision Maker
-              </Label>
-            </div>
-
-            {isDecisionMaker && (
-              <div className="col-span-2">
-                <Label htmlFor="authorityLevel">Authority Level</Label>
-                <Select
-                  name="authorityLevel"
-                  value={authorityLevel}
-                  onValueChange={setAuthorityLevel}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select authority level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="primary">Primary Decision Maker</SelectItem>
-                    <SelectItem value="secondary">Secondary Decision Maker</SelectItem>
-                    <SelectItem value="influencer">Influencer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            {/* Decision maker checkbox + conditional authority level select */}
+            <ContactDecisionMakerFields
+              isDecisionMaker={isDecisionMaker}
+              authorityLevel={authorityLevel}
+              onDecisionMakerChange={setIsDecisionMaker}
+              onAuthorityLevelChange={setAuthorityLevel}
+            />
 
             <div className="col-span-2">
               <Label htmlFor="tags">Tags</Label>

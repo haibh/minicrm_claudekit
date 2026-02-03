@@ -39,6 +39,9 @@ async function main() {
     });
   }
 
+  // Note: E2E test user (test@example.com) is created by the test fixture
+  // using Better Auth's signup API, which properly handles password hashing
+
   // --- Tags ---
   const tags = await Promise.all([
     prisma.tag.create({ data: { name: "VIP", color: "#EF4444", userId } }),

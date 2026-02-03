@@ -1,9 +1,20 @@
 "use client";
 
-import Link from "next/link";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
 import { DealStageBadge } from "./deal-stage-badge";
+import { deleteDeal } from "@/actions/deal-actions";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { DealStage } from "@/generated/prisma/client";
+import { Briefcase } from "lucide-react";
 
 interface Deal {
   id: string;
@@ -25,78 +36,67 @@ interface DealListTableProps {
 }
 
 export function DealListTable({ deals }: DealListTableProps) {
-  return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Value
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Stage
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Company
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Contact
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Close Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Probability
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {deals.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                  No deals found
-                </td>
-              </tr>
-            ) : (
-              deals.map((deal) => (
-                <tr
-                  key={deal.id}
-                  className="hover:bg-gray-50 cursor-pointer transition-colors"
-                >
-                  <td className="px-6 py-4">
-                    <Link
-                      href={`/deals/${deal.id}`}
-                      className="font-medium text-gray-900 hover:text-blue-600"
-                    >
-                      {deal.name}
-                    </Link>
-                  </td>
-                  <td className="px-6 py-4 text-gray-900 font-medium">
-                    {formatCurrency(deal.value)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <DealStageBadge stage={deal.stage} />
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">{deal.company.name}</td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {deal.contact?.name || "-"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {deal.expectedCloseDate
-                      ? formatDate(deal.expectedCloseDate)
-                      : "-"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">{deal.probability}%</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+  const router = useRouter();
+
+  if (deals.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Briefcase className="mx-auto h-12 w-12 text-gray-400" />
+        <h3 className="mt-2 text-sm font-semibold text-gray-900">No deals</h3>
+        <p className="mt-1 text-sm text-gray-500">Get started by creating a new deal.</p>
       </div>
+    );
+  }
+
+  return (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Value</TableHead>
+            <TableHead>Stage</TableHead>
+            <TableHead>Company</TableHead>
+            <TableHead>Contact</TableHead>
+            <TableHead>Close Date</TableHead>
+            <TableHead>Probability</TableHead>
+            <TableHead className="w-[100px]">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {deals.map((deal) => (
+            <TableRow
+              key={deal.id}
+              className="cursor-pointer hover:bg-gray-50"
+              onClick={() => router.push(`/deals/${deal.id}`)}
+            >
+              <TableCell className="font-medium">{deal.name}</TableCell>
+              <TableCell className="font-medium">
+                {formatCurrency(deal.value)}
+              </TableCell>
+              <TableCell>
+                <DealStageBadge stage={deal.stage} />
+              </TableCell>
+              <TableCell>{deal.company.name}</TableCell>
+              <TableCell>{deal.contact?.name || "-"}</TableCell>
+              <TableCell>
+                {deal.expectedCloseDate
+                  ? formatDate(deal.expectedCloseDate)
+                  : "-"}
+              </TableCell>
+              <TableCell>{deal.probability}%</TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <ConfirmDeleteDialog
+                  itemName={deal.name}
+                  onConfirm={async () => {
+                    await deleteDeal(deal.id);
+                  }}
+                />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }

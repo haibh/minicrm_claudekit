@@ -1,5 +1,7 @@
 # Docker Deployment Guide
 
+**Updated:** 2026-02-02
+
 This guide covers deploying MiniCRM using Docker and Docker Compose in production.
 
 ## Prerequisites
@@ -197,13 +199,15 @@ docker compose -f docker-compose.prod.yml down -v
 
 ## Production Recommendations
 
-### Security
+### Security (Phase 1 Optimized)
 
 1. **Use strong passwords** for DB_PASSWORD
 2. **Generate unique secrets** for BETTER_AUTH_SECRET
 3. **Enable HTTPS** via reverse proxy (nginx/Traefik)
 4. **Restrict database access** to app container only
 5. **Regular backups** via cron
+6. **Security headers enabled** — Phase 1 middleware adds X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+7. **Next.js config hardening** — `poweredByHeader: false`, `reactStrictMode: true` in next.config.ts
 
 ### Reverse Proxy (nginx example)
 
@@ -232,9 +236,10 @@ server {
 }
 ```
 
-### Performance
+### Performance (Phase 1 Optimized)
 
 - **Use volumes** for persistent data (already configured)
+- **Optimized package imports** — next.config.ts enables `experimental.optimizePackageImports: ["lucide-react"]`
 - **Limit container resources** if needed:
 
 ```yaml

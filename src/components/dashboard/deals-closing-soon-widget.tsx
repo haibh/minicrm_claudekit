@@ -7,7 +7,7 @@ import { differenceInDays } from "date-fns";
 interface Deal {
   id: string;
   name: string;
-  value: any;
+  value: number | { toNumber: () => number }; // Prisma Decimal or number
   expectedCloseDate: Date | null;
   company: { id: string; name: string } | null;
 }

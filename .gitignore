@@ -39,6 +39,13 @@ yarn-error.log*
 .env.production
 # Keep .env.example committed
 
+# credentials
+LOGIN_INFO.md
+
+# test artifacts
+/playwright-report/
+/test-results/
+
 # vercel
 .vercel
 
